@@ -1,0 +1,114 @@
+{% extends "jobs/base.html" %} {# Or your project-wide base_html_bootstrap_001 template #}
+{% load i18n %}
+
+{% block title %}{% translate "Employer Dashboard" %} - {{ company.name }} - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <header class="mb-4 pb-3 border-bottom">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h1 class="h2 mb-0">Welcome, {{ employer_profile.user.username }}!</h1>
+                <p class="lead text-muted mb-0">Manage your company's presence and job postings on Joblify.</p>
+            </div>
+            <a href="{% url 'employers:create_job_posting' %}" class="btn btn-lg btn-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-circle-fill me-2" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/>
+                </svg>
+                {% translate "Post New Job" %}
+            </a>
+        </div>
+    </header>
+
+    {# Display messages #}
+    {% if messages %}
+        <div class="mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="row g-4 mt-3">
+        {# Company Info/Stats Card #}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% translate "Company Overview" %}</h5>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title h5">{{ company.name }}</h4>
+                    {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.name }} logo" class="img-thumbnail mb-2" style="max-height: 60px;">
+                    {% endif %}
+                    <p class="small text-muted">{{ company.location|default:"Location not set" }}</p>
+                    <hr>
+                    <h6 class="card-subtitle mb-2 text-muted">{% translate "Job Postings Summary" %}:</h6>
+                    <ul class="list-unstyled">
+                        <li>{% translate "Active Jobs" %}: <span class="badge bg-success rounded-pill">{{ active_jobs_count }}</span></li>
+                        <li>{% translate "Inactive/Archived Jobs" %}: <span class="badge bg-secondary rounded-pill">{{ inactive_jobs_count }}</span></li>
+                        <li>{% translate "Total Jobs Posted" %}: <span class="badge bg-info rounded-pill">{{ total_jobs_count }}</span></li>
+                    </ul>
+                    <a href="{% url 'employers:edit_company_profile' %}" class="btn btn-outline-primary btn-sm mt-2">{% translate "Edit Company Profile" %}</a>
+                </div>
+            </div>
+        </div>
+
+        {# Recent Job Postings List #}
+        <div class="col-md-8">
+            <div class="card shadow-sm h-100">
+                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% translate "Your Recent Job Postings" %}</h5>
+                    <a href="{% url 'employers:manage_jobs_list' %}" class="btn btn-outline-secondary btn-sm">{% translate "Manage All Jobs" %}</a> {# MODIFIED LINE #}
+                </div>
+                <div class="card-body p-0">
+                    {% if posted_jobs %}
+                        <ul class="list-group list-group-flush">
+                            {% for job in posted_jobs|slice:":5" %} {# Show latest 5 jobs on dashboard #}
+                            <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'jobs:job_detail' pk=job.pk %}" class="text-decoration-none fw-medium h6 d-block mb-1">{{ job.title }}</a>
+                                    <small class="d-block text-muted">
+                                        {% translate "Posted" %}: {{ job.date_posted|date:"d M, Y" }} - 
+                                        {% if job.is_active %}
+                                            <span class="badge bg-success fw-normal">{% translate "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary fw-normal">{% translate "Inactive" %}</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="btn-group" role="group" aria-label="Job Actions for {{ job.title }}">
+                                    <a href="#" class="btn btn-sm btn-outline-info disabled">{% translate "Applicants" %}</a>
+                                    <a href="{% url 'employers:edit_job_posting' job_pk=job.pk %}" class="btn btn-sm btn-outline-primary">{% translate "Edit" %}</a>
+                                    <form method="post" action="{% url 'employers:toggle_job_status' job_pk=job.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        {% if job.is_active %}
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">{% translate "Deactivate" %}</button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-sm btn-outline-success">{% translate "Activate" %}</button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% if posted_jobs.paginator.count > 5 %}
+                        <div class="card-footer text-center">
+                             <a href="{% url 'employers:manage_jobs_list' %}">{% translate "View all" %} ({{ posted_jobs.paginator.count }}) {% translate "job postings" %}...</a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <p class="mb-0">{% translate "You haven't posted any jobs yet." %}</p>
+                            <p>{% translate "Click the 'Post New Job' button to get started!" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

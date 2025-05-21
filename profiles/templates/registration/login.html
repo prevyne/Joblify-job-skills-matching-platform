@@ -1,0 +1,76 @@
+{% extends "jobs/base.html" %} {# Or the correct path to your base_html_bootstrap_001 template #}
+{% load i18n %} {# For internationalization if you use it, not strictly needed for this example #}
+
+{% block title %}{% translate "Log In" %} - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body p-4 p-sm-5">
+                    <h2 class="card-title text-center mb-4 fw-bold fs-3">{% translate "Log In to Joblify" %}</h2>
+                    
+                    {% if form.errors and not form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {% if form.errors.items|length == 1 %}{% translate "Please correct the error below." %}{% else %}{% translate "Please correct the errors below." %}{% endif %}
+                        </div>
+                    {% endif %}
+
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'login' %}" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">{% translate 'Username' %}</label>
+                            <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" value="{{ form.username.value|default:'' }}" required autofocus>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">{% translate 'Password' %}</label>
+                            <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" class="form-control form-control-lg {% if form.password.errors %}is-invalid{% endif %}" required>
+                             {% if form.password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {# Hidden field for 'next' URL parameter #}
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">{% translate 'Log In' %}</button>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="small mb-2">
+                                <a href="{% url 'password_reset' %}" class="text-decoration-none">{% translate "Forgot your password?" %}</a>
+                            </p>
+                            <p class="small mb-0">
+                                {% translate "Don't have an account?" %} <a href="{% url 'profiles:signup' %}" class="text-decoration-none fw-medium">{% translate "Sign up here" %}</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+    {% extends "jobs/base.html" %}
+    {% load i18n %}
+
+    {% block title %}{% translate "Employer Registration" %} - Joblify{% endblock %}
+
+    {% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7 col-xl-6">
+                <div class="card shadow-lg border-0 rounded-3">
+                    <div class="card-header bg-primary text-white p-4 text-center">
+                        <h2 class="mb-0 h3">{% translate "Register Your Company" %}</h2>
+                        <p class="mb-0 small">{% translate "Join Joblify to find top tech talent." %}</p>
+                    </div>
+                    <div class="card-body p-4 p-sm-5">
+                        {# Display messages from the view (e.g., success/error after form submission) #}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.errors and not form.non_field_errors %}
+                             <div class="alert alert-danger" role="alert">
+                                {% translate "Please correct the errors highlighted below." %}
+                            </div>
+                        {% endif %}
+
+
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            
+                            <h5 class="mb-3 border-bottom pb-2">{% translate "Account Details" %}</h5>
+                            {# Username #}
+                            <div class="mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                                <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" value="{{ form.username.value|default:'' }}" required autofocus>
+                                {% if form.username.help_text %}<div class="form-text">{{ form.username.help_text|safe }}</div>{% endif %}
+                                {% if form.username.errors %}<div class="invalid-feedback">{% for error in form.username.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            {# Email #}
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="form-control form-control-lg {% if form.email.errors %}is-invalid{% endif %}" value="{{ form.email.value|default:'' }}" required>
+                                {% if form.email.help_text %}<div class="form-text">{{ form.email.help_text|safe }}</div>{% endif %}
+                                {% if form.email.errors %}<div class="invalid-feedback">{% for error in form.email.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            {# Password 1 #}
+                            <div class="mb-3">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label">{{ form.password1.label }}</label>
+                                <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" class="form-control form-control-lg {% if form.password1.errors %}is-invalid{% endif %}" required>
+                                {% if form.password1.help_text %}<div class="form-text">{{ form.password1.help_text|safe }}</div>{% endif %}
+                                {% if form.password1.errors %}<div class="invalid-feedback">{% for error in form.password1.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            {# Password 2 (Confirmation) #}
+                            <div class="mb-3">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label">{{ form.password2.label }}</label>
+                                <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" class="form-control form-control-lg {% if form.password2.errors %}is-invalid{% endif %}" required>
+                                {% if form.password2.help_text %}<div class="form-text">{{ form.password2.help_text|safe }}</div>{% endif %}
+                                {% if form.password2.errors %}<div class="invalid-feedback">{% for error in form.password2.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            <h5 class="my-4 border-bottom pb-2">{% translate "Company Information" %}</h5>
+                            {# Company Name #}
+                            <div class="mb-3">
+                                <label for="{{ form.company_name.id_for_label }}" class="form-label">{{ form.company_name.label }}</label>
+                                <input type="text" name="{{ form.company_name.name }}" id="{{ form.company_name.id_for_label }}" class="form-control form-control-lg {% if form.company_name.errors %}is-invalid{% endif %}" value="{{ form.company_name.value|default:'' }}" required>
+                                {% if form.company_name.help_text %}<div class="form-text">{{ form.company_name.help_text|safe }}</div>{% endif %}
+                                {% if form.company_name.errors %}<div class="invalid-feedback">{% for error in form.company_name.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            {# Company Website (Optional) #}
+                            <div class="mb-3">
+                                <label for="{{ form.company_website.id_for_label }}" class="form-label">{{ form.company_website.label }}</label>
+                                <input type="url" name="{{ form.company_website.name }}" id="{{ form.company_website.id_for_label }}" class="form-control form-control-lg {% if form.company_website.errors %}is-invalid{% endif %}" value="{{ form.company_website.value|default:'' }}" placeholder="https://www.example.com">
+                                {% if form.company_website.help_text %}<div class="form-text">{{ form.company_website.help_text|safe }}</div>{% endif %}
+                                {% if form.company_website.errors %}<div class="invalid-feedback">{% for error in form.company_website.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            <hr class="my-4">
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">{% translate "Create Employer Account" %}</button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <p class="small">{% translate "Already have an employer account?" %} <a href="{% url 'login' %}" class="text-decoration-none">{% translate "Log In" %}</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    

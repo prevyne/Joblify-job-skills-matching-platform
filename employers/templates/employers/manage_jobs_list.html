@@ -1,0 +1,135 @@
+{% extends "jobs/base.html" %} {# Or your project-wide base_html_bootstrap_001 template #}
+{% load i18n %}
+
+{% block title %}{% translate "Manage Your Job Postings" %} - {{ company.name }} - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <header class="mb-4 pb-3 border-bottom">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h1 class="h2 mb-0">{% translate "Manage Job Postings" %}</h1>
+                <p class="lead text-muted mb-0">{% translate "Oversee all job listings for" %} {{ company.name }}.</p>
+            </div>
+            <a href="{% url 'employers:create_job_posting' %}" class="btn btn-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg me-1" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
+                </svg>
+                {% translate "Post New Job" %}
+            </a>
+        </div>
+    </header>
+
+    {# Display messages #}
+    {% if messages %}
+        <div class="mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if posted_jobs %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">{% translate "All Job Postings" %} ({{ posted_jobs.paginator.count }})</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">{% translate "Title" %}</th>
+                            <th scope="col">{% translate "Status" %}</th>
+                            <th scope="col">{% translate "Date Posted" %}</th>
+                            <th scope="col" class="text-center">{% translate "Applicants" %}</th>
+                            <th scope="col" class="text-end">{% translate "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in posted_jobs %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'jobs:job_detail' pk=job.pk %}" class="fw-medium text-decoration-none">{{ job.title }}</a>
+                                <small class="d-block text-muted">{{ job.location }}</small>
+                            </td>
+                            <td>
+                                {% if job.is_active %}
+                                    <span class="badge bg-success fw-normal">{% translate "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary fw-normal">{% translate "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ job.date_posted|date:"d M, Y" }}</td>
+                            <td class="text-center">
+                                {# We will make this dynamic later when we can count applicants #}
+                                <a href="{% url 'employers:view_job_applicants' job_pk=job.pk %}" class="badge bg-info rounded-pill text-decoration-none">
+                                    {{ job.applicants.count }} {# Assuming 'applicants' is the related_name from JobApplication to JobPosting #}
+                                </a>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Job Actions for {{ job.title }}">
+                                    <a href="{% url 'employers:view_job_applicants' job_pk=job.pk %}" class="btn btn-outline-info">{% translate "View Applicants" %}</a> {# MODIFIED LINE #}
+                                    <a href="{% url 'employers:edit_job_posting' job_pk=job.pk %}" class="btn btn-outline-primary">{% translate "Edit" %}</a>
+                                    <form method="post" action="{% url 'employers:toggle_job_status' job_pk=job.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        {% if job.is_active %}
+                                            <button type="submit" class="btn btn-outline-warning">{% translate "Deactivate" %}</button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-outline-success">{% translate "Activate" %}</button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if is_paginated %}
+            <div class="card-footer bg-light border-top-0">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if posted_jobs.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; {% translate "first" %}</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ posted_jobs.previous_page_number }}">{% translate "previous" %}</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo; {% translate "first" %}</span></li>
+                            <li class="page-item disabled"><span class="page-link">{% translate "previous" %}</span></li>
+                        {% endif %}
+
+                        <li class="page-item disabled"><span class="page-link">{% translate "Page" %} {{ posted_jobs.number }} {% translate "of" %} {{ posted_jobs.paginator.num_pages }}.</span></li>
+
+                        {% if posted_jobs.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ posted_jobs.next_page_number }}">{% translate "next" %}</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ posted_jobs.paginator.num_pages }}">{% translate "last" %} &raquo;</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">{% translate "next" %}</span></li>
+                            <li class="page-item disabled"><span class="page-link">{% translate "last" %} &raquo;</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-4 text-center" role="alert">
+            <h4 class="alert-heading">{% translate "No Job Postings Yet" %}</h4>
+            <p>{% translate "You haven't posted any jobs for" %} {{ company.name }}.</p>
+            <hr>
+            <p class="mb-0">{% translate "Click the 'Post New Job' button above to get started!" %}</p>
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'employers:employer_dashboard' %}" class="btn btn-outline-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-circle-fill me-1" viewBox="0 0 16 16">
+              <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+            </svg>
+            {% translate "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

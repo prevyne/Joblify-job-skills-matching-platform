@@ -1,0 +1,93 @@
+{% extends "jobs/base.html" %}
+
+{% block title %}Current Job Openings - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-4"> {# Main container with top/bottom padding #}
+    <header class="mb-4 text-center"> {# Centered header #}
+        <h1 class="display-5">Current Job Openings</h1>
+        <p class="lead text-muted">Find your next career opportunity with Joblify.</p>
+    </header>
+
+    {# Search Form #}
+    <form method="get" action="{% url 'jobs:job_list' %}" class="mb-5 p-4 bg-light border rounded-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-md">
+                <label for="searchInput" class="visually-hidden">Search Keywords</label>
+                <input type="text" name="q" id="searchInput" class="form-control form-control-lg" placeholder="Search by keyword, title, company, skills..." value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-auto">
+                <button class="btn btn-primary btn-lg w-100" type="submit">Search Jobs</button>
+            </div>
+        </div>
+    </form>
+
+    {% if jobs %}
+        <div class="row row-cols-1 row-cols-md-2 g-4"> {# Responsive grid: 1 col on small, 2 on medium+ screens. g-4 for gutters #}
+            {% for job in jobs %}
+            <div class="col d-flex align-items-stretch"> {# d-flex and align-items-stretch for equal height cards #}
+                <div class="card w-100 shadow-sm hover-shadow-lg"> {# w-100 for full column width, shadow, and hover effect #}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">
+                            {# stretched-link makes the whole card clickable #}
+                            <a href="{% url 'jobs:job_detail' pk=job.pk %}" class="text-decoration-none stretched-link">
+                                {{ job.title }}
+                            </a>
+                        </h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ job.company.name }} <small>({{ job.location }})</small></h6>
+                        
+                        <p class="card-text small text-muted flex-grow-1"> {# flex-grow-1 to take available space #}
+                            {{ job.description|striptags|truncatewords:20 }} {# Slightly shorter truncation for card preview #}
+                        </p>
+                        
+                        <div class="mt-auto"> {# Pushes content below to the bottom #}
+                            <ul class="list-unstyled mb-2 small">
+                                <li class="mb-1"><strong>Type:</strong> <span class="badge bg-secondary fw-normal">{{ job.get_job_type_display }}</span></li>
+                                {% if job.experience_level %}
+                                <li class="mb-1"><strong>Level:</strong> <span class="badge bg-success fw-normal">{{ job.get_experience_level_display }}</span></li>
+                                {% endif %}
+                                <li><em>Posted: {{ job.date_posted|date:"d M, Y" }}</em></li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% if job.skills_required.all %}
+                    <div class="card-footer bg-transparent border-top-0 pt-0"> {# Transparent footer, no top border, no top padding #}
+                        <p class="mb-0 small">
+                            <strong>Key Skills:</strong>
+                            {% for skill in job.skills_required.all|slice:":4" %} {# Show up to 4 skills #}
+                                <span class="badge rounded-pill bg-light text-dark border me-1">{{ skill.name }}</span>
+                            {% endfor %}
+                            {% if job.skills_required.all|length > 4 %}
+                                <span class="badge rounded-pill bg-light text-dark border">...</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-4 text-center" role="alert">
+            <h4 class="alert-heading">No Jobs Found</h4>
+            {% if request.GET.q %}
+                <p>We couldn't find any jobs matching your search for "<strong>{{ request.GET.q }}</strong>".</p>
+                <p class="mb-0">Please try different keywords or broaden your search.</p>
+            {% else %}
+                <p>There are currently no job openings listed.</p>
+                <p class="mb-0">Please check back soon or sign up for alerts (feature coming soon!).</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{# Optional: Custom CSS for hover effect on cards #}
+<style>
+    .hover-shadow-lg {
+        transition: box-shadow .2s ease-in-out;
+    }
+    .hover-shadow-lg:hover {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; /* Bootstrap's shadow-lg intensity */
+    }
+</style>
+{% endblock %}

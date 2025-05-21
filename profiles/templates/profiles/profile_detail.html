@@ -1,0 +1,88 @@
+{% extends "jobs/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ profile.user.username }}'s {% translate "Profile" %} - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+                <div class="card-header bg-primary text-white p-4">
+                    <div class="d-flex align-items-center">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user.username }}'s profile picture" class="img-thumbnail rounded-circle me-3" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                            {# Placeholder image or icon if no profile picture #}
+                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3 text-white" style="width: 100px; height: 100px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                                  <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h2 class="mb-0 h3">{{ profile.user.username }}</h2>
+                            {% if profile.user.get_full_name %}
+                                <p class="mb-0 fs-5">{{ profile.user.get_full_name }}</p>
+                            {% endif %}
+                            <p class="mb-0 small opacity-75">{{ profile.user.email }}</p>
+                        </div>
+                        <a href="{% url 'profiles:profile_edit' %}" class="btn btn-light btn-sm ms-auto align-self-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square me-1" viewBox="0 0 16 16">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                            </svg>
+                            {% translate "Edit Profile" %}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-sm-5">
+                    {% if profile.bio %}
+                        <section class="mb-4">
+                            <h4 class="text-primary fw-normal">{% translate "About Me" %}</h4>
+                            <p class="text-muted" style="white-space: pre-wrap;">{{ profile.bio }}</p>
+                        </section>
+                    {% else %}
+                         <section class="mb-4">
+                            <h4 class="text-primary fw-normal">{% translate "About Me" %}</h4>
+                            <p class="text-muted"><em>{% translate "No bio provided. Add a bio to tell us more about yourself!" %}</em></p>
+                        </section>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <section class="mb-4">
+                        <h4 class="text-primary fw-normal">{% translate "Contact Information" %}</h4>
+                        <dl class="row">
+                            <dt class="col-sm-3">{% translate "Phone" %}:</dt>
+                            <dd class="col-sm-9">{{ profile.phone_number|default:"<em>Not provided</em>" }}</dd>
+
+                            <dt class="col-sm-3">{% translate "Location" %}:</dt>
+                            <dd class="col-sm-9">{{ profile.location|default:"<em>Not provided</em>" }}</dd>
+                        </dl>
+                    </section>
+                    
+                    <hr class="my-4">
+
+                    <section>
+                        <h4 class="text-primary fw-normal">{% translate "Skills" %}</h4>
+                        {% if profile.skills.all %}
+                            <div>
+                                {% for skill in profile.skills.all %}
+                                    <span class="badge rounded-pill bg-info text-dark fw-normal fs-6 me-1 mb-2 p-2 shadow-sm">
+                                        {{ skill.name }} 
+                                        <span class="badge bg-light text-dark ms-1">{{ skill.get_skill_type_display }}</span>
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted"><em>{% translate "No skills listed yet. Add your skills to get better job matches!" %}</em></p>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

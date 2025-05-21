@@ -1,0 +1,103 @@
+{% extends "jobs/base.html" %} {# Or your project-wide base_html_bootstrap_001 template #}
+{% load i18n %}
+
+{% block title %}{% translate "Applicant Profile" %}: {{ viewed_user.username }} - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+                <div class="card-header bg-secondary text-white p-4"> {# Changed header color for distinction #}
+                    <div class="d-flex align-items-center">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="{{ viewed_user.username }}'s profile picture" class="img-thumbnail rounded-circle me-3" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-dark rounded-circle d-flex align-items-center justify-content-center me-3 text-white" style="width: 100px; height: 100px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                                  <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <div class="flex-grow-1"> {# Allow text to take space #}
+                            <h2 class="mb-0 h3">{{ viewed_user.username }}</h2>
+                            {% if viewed_user.get_full_name %}
+                                <p class="mb-0 fs-5">{{ viewed_user.get_full_name }}</p>
+                            {% endif %}
+                            <p class="mb-0 small opacity-75">{{ viewed_user.email }}</p>
+                        </div>
+                        {# "Edit Profile" button is INTENTIONALLY REMOVED from this employer's view of an applicant's profile. #}
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-sm-5">
+                    {% if profile.bio %}
+                        <section class="mb-4">
+                            <h4 class="text-secondary fw-normal">{% translate "About Applicant" %}</h4>
+                            <p class="text-muted" style="white-space: pre-wrap;">{{ profile.bio }}</p>
+                        </section>
+                    {% else %}
+                         <section class="mb-4">
+                            <h4 class="text-secondary fw-normal">{% translate "About Applicant" %}</h4>
+                            <p class="text-muted"><em>{% translate "No bio provided by the applicant." %}</em></p>
+                        </section>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <section class="mb-4">
+                        <h4 class="text-secondary fw-normal">{% translate "Contact Information" %}</h4>
+                        <dl class="row">
+                            <dt class="col-sm-3">{% translate "Phone" %}:</dt>
+                            <dd class="col-sm-9">{{ profile.phone_number|default:"<em>Not provided</em>" }}</dd>
+
+                            <dt class="col-sm-3">{% translate "Location" %}:</dt>
+                            <dd class="col-sm-9">{{ profile.location|default:"<em>Not provided</em>" }}</dd>
+                        </dl>
+                    </section>
+                    
+                    <hr class="my-4">
+
+                    <section>
+                        <h4 class="text-secondary fw-normal">{% translate "Skills" %}</h4>
+                        {% if profile.skills.all %}
+                            <div>
+                                {% for skill in profile.skills.all %}
+                                    <span class="badge rounded-pill bg-info text-dark fw-normal fs-6 me-1 mb-2 p-2 shadow-sm">
+                                        {{ skill.name }} 
+                                        <span class="badge bg-light text-dark ms-1">{{ skill.get_skill_type_display }}</span>
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted"><em>{% translate "No skills listed by the applicant." %}</em></p>
+                        {% endif %}
+                    </section>
+                    
+                    {# Placeholder for other sections like Experience, Education if you add them to UserProfile #}
+                    {# These were the sections with the stray comments. Removed them. #}
+                    <hr class="my-4">
+                    <section class="mb-4">
+                        <h4 class="text-secondary fw-normal">{% translate "Work Experience" %}</h4>
+                        <p class="text-muted"><em>Content coming soon...</em></p>
+                    </section>
+
+                    <hr class="my-4">
+                    <section>
+                        <h4 class="text-secondary fw-normal">{% translate "Education" %}</h4>
+                        <p class="text-muted"><em>Content coming soon...</em></p>
+                    </section> 
+                </div>
+                <div class="card-footer text-center bg-light border-top-0 pt-0 pb-3">
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-short" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
+                        </svg>
+                        {% translate "Go Back" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

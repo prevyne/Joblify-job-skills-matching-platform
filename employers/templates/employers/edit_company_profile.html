@@ -1,0 +1,107 @@
+    {% extends "jobs/base.html" %} {# Or your project-wide base_html_bootstrap_001 template #}
+    {% load i18n %}
+
+    {% block title %}{% translate "Edit Company Profile" %} for {{ company.name }} - Joblify{% endblock %}
+
+    {% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="card shadow-lg border-0 rounded-3">
+                    <div class="card-header bg-primary text-white p-4 text-center">
+                        <h2 class="mb-0 h3">{% translate "Update Company Profile" %}</h2>
+                        <p class="mb-0 small">{% translate "Manage the details for" %} {{ company.name }}.</p>
+                    </div>
+                    <div class="card-body p-4 p-sm-5">
+                        {# Display messages from the view (e.g., success/error after form submission) #}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.errors and not form.non_field_errors %}
+                             <div class="alert alert-danger small" role="alert">
+                                {% translate "Please correct the errors highlighted in the form below." %}
+                            </div>
+                        {% endif %}
+
+                        <form method="post" enctype="multipart/form-data" novalidate>
+                            {% csrf_token %}
+                            
+                            {# Render form fields manually for Bootstrap styling #}
+                            {# Company Name #}
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label fs-5">{{ form.name.label }}</label>
+                                {{ form.name }} {# Widget has form-control form-control-lg from forms.py #}
+                                {% if form.name.help_text %}<div class="form-text">{{ form.name.help_text|safe }}</div>{% endif %}
+                                {% if form.name.errors %}<div class="invalid-feedback d-block">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            {# Description #}
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                                {{ form.description }} {# Widget has form-control from forms.py #}
+                                {% if form.description.help_text %}<div class="form-text">{{ form.description.help_text|safe }}</div>{% endif %}
+                                {% if form.description.errors %}<div class="invalid-feedback d-block">{% for error in form.description.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            {# Website #}
+                            <div class="mb-3">
+                                <label for="{{ form.website.id_for_label }}" class="form-label">{{ form.website.label }}</label>
+                                {{ form.website }} {# Widget has form-control from forms.py #}
+                                {% if form.website.help_text %}<div class="form-text">{{ form.website.help_text|safe }}</div>{% endif %}
+                                {% if form.website.errors %}<div class="invalid-feedback d-block">{% for error in form.website.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            {# Logo #}
+                            <div class="mb-3">
+                                <label for="{{ form.logo.id_for_label }}" class="form-label">{{ form.logo.label }}</label>
+                                {% if company.logo %}
+                                    <div class="mb-2">
+                                        <p class="mb-1 small text-muted">{% translate "Current logo:" %}</p>
+                                        <img src="{{ company.logo.url }}" alt="{{ company.name }} logo" style="max-height: 80px; border-radius: .25rem;" class="img-thumbnail">
+                                    </div>
+                                {% endif %}
+                                {{ form.logo }} {# Widget has form-control from forms.py (ClearableFileInput) #}
+                                {% if form.logo.help_text %}<div class="form-text">{{ form.logo.help_text|safe }}</div>{% endif %}
+                                {% if form.logo.errors %}<div class="invalid-feedback d-block">{% for error in form.logo.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+                            
+                            {# Location #}
+                            <div class="mb-3">
+                                <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                                {{ form.location }} {# Widget has form-control from forms.py #}
+                                {% if form.location.help_text %}<div class="form-text">{{ form.location.help_text|safe }}</div>{% endif %}
+                                {% if form.location.errors %}<div class="invalid-feedback d-block">{% for error in form.location.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            </div>
+                            
+                            <hr class="my-4">
+
+                            <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                                <a href="{% url 'employers:employer_dashboard' %}" class="btn btn-outline-secondary btn-lg">{% translate "Cancel" %}</a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save-fill me-2" viewBox="0 0 16 16">
+                                      <path d="M8.5 1.5A1.5 1.5 0 0 1 10 0h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h6c-.314.418-.5.937-.5 1.5v7.793L4.854 6.646a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l3.5-3.5a.5.5 0 0 0-.708-.708L8.5 9.293V1.5z"/>
+                                      <path d="M4 11H2v3h2v-3zm2-4H4v3h2V7zm2 4H6v3h2v-3zm2-4H8v3h2V7zm2 4h-2v3h2v-3zm2-4h-2v3h2V7zm0 4h-2v3h2v-3zM12 7h2v3h-2V7z"/>
+                                    </svg>
+                                    {% translate "Save Company Profile" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}

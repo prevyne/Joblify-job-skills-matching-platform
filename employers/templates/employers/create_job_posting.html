@@ -1,0 +1,159 @@
+    {% extends "jobs/base.html" %}
+    {% load i18n %}
+
+    {% block title %}{% translate "Post a New Job" %} for {{ company_name }} - Joblify{% endblock %}
+
+    {% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8"> {# Wider column for a potentially long form #}
+                <div class="card shadow-lg border-0 rounded-3">
+                    <div class="card-header bg-primary text-white p-4 text-center">
+                        <h2 class="mb-0 h3">{% translate "Create a New Job Posting" %}</h2>
+                        <p class="mb-0 small">{% translate "Fill in the details below for your job opening at" %} {{ company_name }}.</p>
+                    </div>
+                    <div class="card-body p-4 p-sm-5">
+                        {# Display messages from the view (e.g., success/error after form submission) #}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.errors and not form.non_field_errors %}
+                             <div class="alert alert-danger small" role="alert">
+                                {% translate "Please correct the errors highlighted in the form below." %}
+                            </div>
+                        {% endif %}
+
+                        <form method="post" novalidate> {# novalidate to use Django's validation primarily #}
+                            {% csrf_token %}
+
+                            <div class="row g-3">
+                                <div class="col-md-12 mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fs-5">{{ form.title.label }}</label>
+                                    {{ form.title }} {# Widget already has form-control form-control-lg from forms.py #}
+                                    {% if form.title.help_text %}<div class="form-text">{{ form.title.help_text|safe }}</div>{% endif %}
+                                    {% if form.title.errors %}<div class="invalid-feedback d-block">{% for error in form.title.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                                    {{ form.description }} {# Widget has form-control from forms.py #}
+                                    {% if form.description.help_text %}<div class="form-text">{{ form.description.help_text|safe }}</div>{% endif %}
+                                    {% if form.description.errors %}<div class="invalid-feedback d-block">{% for error in form.description.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                                    {{ form.location }} {# Widget has form-control from forms.py #}
+                                    {% if form.location.help_text %}<div class="form-text">{{ form.location.help_text|safe }}</div>{% endif %}
+                                    {% if form.location.errors %}<div class="invalid-feedback d-block">{% for error in form.location.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.job_type.id_for_label }}" class="form-label">{{ form.job_type.label }}</label>
+                                    {{ form.job_type }} {# Widget has form-select from forms.py #}
+                                    {% if form.job_type.help_text %}<div class="form-text">{{ form.job_type.help_text|safe }}</div>{% endif %}
+                                    {% if form.job_type.errors %}<div class="invalid-feedback d-block">{% for error in form.job_type.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.experience_level.id_for_label }}" class="form-label">{{ form.experience_level.label }}</label>
+                                    {{ form.experience_level }} {# Widget has form-select from forms.py #}
+                                    {% if form.experience_level.help_text %}<div class="form-text">{{ form.experience_level.help_text|safe }}</div>{% endif %}
+                                    {% if form.experience_level.errors %}<div class="invalid-feedback d-block">{% for error in form.experience_level.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.application_deadline.id_for_label }}" class="form-label">{{ form.application_deadline.label }}</label>
+                                    {{ form.application_deadline }} {# Widget has form-control and type='date' from forms.py #}
+                                    {% if form.application_deadline.help_text %}<div class="form-text">{{ form.application_deadline.help_text|safe }}</div>{% endif %}
+                                    {% if form.application_deadline.errors %}<div class="invalid-feedback d-block">{% for error in form.application_deadline.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.salary_min.id_for_label }}" class="form-label">{{ form.salary_min.label }}</label>
+                                    {{ form.salary_min }} {# Widget has form-control from forms.py #}
+                                    {% if form.salary_min.help_text %}<div class="form-text">{{ form.salary_min.help_text|safe }}</div>{% endif %}
+                                    {% if form.salary_min.errors %}<div class="invalid-feedback d-block">{% for error in form.salary_min.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.salary_max.id_for_label }}" class="form-label">{{ form.salary_max.label }}</label>
+                                    {{ form.salary_max }} {# Widget has form-control from forms.py #}
+                                    {% if form.salary_max.help_text %}<div class="form-text">{{ form.salary_max.help_text|safe }}</div>{% endif %}
+                                    {% if form.salary_max.errors %}<div class="invalid-feedback d-block">{% for error in form.salary_max.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+                                
+                                <div class="col-md-12 mb-3">
+                                    <label for="{{ form.responsibilities.id_for_label }}" class="form-label">{{ form.responsibilities.label }}</label>
+                                    {{ form.responsibilities }} {# Widget has form-control from forms.py #}
+                                    {% if form.responsibilities.help_text %}<div class="form-text">{{ form.responsibilities.help_text|safe }}</div>{% endif %}
+                                    {% if form.responsibilities.errors %}<div class="invalid-feedback d-block">{% for error in form.responsibilities.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label for="{{ form.qualifications.id_for_label }}" class="form-label">{{ form.qualifications.label }}</label>
+                                    {{ form.qualifications }} {# Widget has form-control from forms.py #}
+                                    {% if form.qualifications.help_text %}<div class="form-text">{{ form.qualifications.help_text|safe }}</div>{% endif %}
+                                    {% if form.qualifications.errors %}<div class="invalid-feedback d-block">{% for error in form.qualifications.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-12 mb-4">
+                                    <label class="form-label d-block">{{ form.skills_required.label }}</label>
+                                    {% if form.skills_required.help_text %}<div class="form-text mb-2">{{ form.skills_required.help_text|safe }}</div>{% endif %}
+                                    <div class="p-3 border rounded" style="max-height: 250px; overflow-y: auto;">
+                                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3">
+                                        {# Rendering CheckboxSelectMultiple manually for better Bootstrap integration #}
+                                        {% for pk, choice in form.fields.skills_required.choices %}
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="{{ form.skills_required.name }}" value="{{ pk }}" id="id_skills_required_{{ forloop.counter0 }}" class="form-check-input" {% if pk|stringformat:"s" in form.skills_required.value|default_if_none:""|stringformat:"s" or pk in form.skills_required.value|default_if_none:"" %}checked{% endif %}>
+                                                <label for="id_skills_required_{{ forloop.counter0 }}" class="form-check-label">{{ choice }}</label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% if form.skills_required.errors %}<div class="text-danger small mt-1">{% for error in form.skills_required.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.is_active }} {# Widget has form-check-input from forms.py #}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                                    </div>
+                                    {% if form.is_active.help_text %}<div class="form-text">{{ form.is_active.help_text|safe }}</div>{% endif %}
+                                    {% if form.is_active.errors %}<div class="text-danger small mt-1">{% for error in form.is_active.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+
+                            <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                                <a href="{% url 'employers:employer_dashboard' %}" class="btn btn-outline-secondary btn-lg">{% translate "Cancel" %}</a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill me-2" viewBox="0 0 16 16">
+                                      <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+                                    </svg>
+                                    {% translate "Post Job" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}

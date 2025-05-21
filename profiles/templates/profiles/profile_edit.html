@@ -1,0 +1,143 @@
+{% extends "jobs/base.html" %} {# Or the correct path to your base_html_bootstrap_001 template #}
+{% load i18n %}
+
+{% block title %}{% translate "Edit Your Profile" %} - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white p-4">
+                    <h2 class="mb-0 h4">{% translate "Edit Your Profile" %} ({{ profile.user.username }})</h2>
+                </div>
+                <div class="card-body p-4 p-sm-5">
+                    {# Optional: Display general form errors or messages #}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {# The enctype is crucial for file uploads (profile_picture) #}
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        {# Render form fields manually for Bootstrap styling #}
+                        {# Bio #}
+                        <div class="mb-3">
+                            <label for="{{ form.bio.id_for_label }}" class="form-label">{{ form.bio.label }}</label>
+                            <textarea name="{{ form.bio.name }}" id="{{ form.bio.id_for_label }}" class="form-control {% if form.bio.errors %}is-invalid{% endif %}" rows="4">{{ form.bio.value|default_if_none:"" }}</textarea>
+                            {% if form.bio.help_text %}
+                                <div class="form-text">{{ form.bio.help_text|safe }}</div>
+                            {% endif %}
+                            {% if form.bio.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.bio.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Profile Picture #}
+                        <div class="mb-3">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">{{ form.profile_picture.label }}</label>
+                            {% if profile.profile_picture %}
+                                <div class="mb-2">
+                                    <p class="mb-1 small text-muted">{% translate "Current picture:" %}</p>
+                                    <img src="{{ profile.profile_picture.url }}" alt="Current profile picture" style="max-height: 100px; border-radius: .25rem;" class="img-thumbnail">
+                                </div>
+                            {% endif %}
+                            <input type="file" name="{{ form.profile_picture.name }}" id="{{ form.profile_picture.id_for_label }}" class="form-control {% if form.profile_picture.errors %}is-invalid{% endif %}">
+                            {% if form.profile_picture.help_text %}
+                                <div class="form-text">{{ form.profile_picture.help_text|safe }}</div>
+                            {% endif %}
+                            {% if form.profile_picture.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.profile_picture.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            {# Django's ClearableFileInput might add a 'clear' checkbox if a file exists. #}
+                            {# You can access it via {{ form.profile_picture }} if you render the whole field #}
+                            {# or check form.fields.profile_picture.widget.template_name for customization #}
+                            {% if form.profile_picture.value %} {# Check if there's an existing file to offer clear option #}
+                                <div class="form-check mt-1">
+                                     <input type="checkbox" name="{{ form.profile_picture.html_name }}_clear" id="{{ form.profile_picture.id_for_label }}_clear" class="form-check-input">
+                                     <label class="form-check-label" for="{{ form.profile_picture.id_for_label }}_clear">{% translate "Clear current picture" %}</label>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Phone Number #}
+                        <div class="mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
+                            <input type="text" name="{{ form.phone_number.name }}" id="{{ form.phone_number.id_for_label }}" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" value="{{ form.phone_number.value|default_if_none:"" }}">
+                            {% if form.phone_number.help_text %}
+                                <div class="form-text">{{ form.phone_number.help_text|safe }}</div>
+                            {% endif %}
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Location #}
+                        <div class="mb-3">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                            <input type="text" name="{{ form.location.name }}" id="{{ form.location.id_for_label }}" class="form-control {% if form.location.errors %}is-invalid{% endif %}" value="{{ form.location.value|default_if_none:"" }}">
+                            {% if form.location.help_text %}
+                                <div class="form-text">{{ form.location.help_text|safe }}</div>
+                            {% endif %}
+                            {% if form.location.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.location.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Skills #}
+                        <div class="mb-4">
+                            <label class="form-label">{{ form.skills.label }}</label>
+                            <div class="p-3 border rounded" style="max-height: 200px; overflow-y: auto;">
+                                {# Rendering CheckboxSelectMultiple manually for better Bootstrap integration #}
+                                {% for pk, choice in form.fields.skills.choices %}
+                                <div class="form-check">
+                                    <input type="checkbox" name="{{ form.skills.name }}" value="{{ pk }}" id="id_skills_{{ forloop.counter0 }}" class="form-check-input" {% if pk|stringformat:"s" in form.skills.value|default_if_none:""|stringformat:"s" or pk in form.skills.value|default_if_none:"" %}checked{% endif %}>
+                                    <label for="id_skills_{{ forloop.counter0 }}" class="form-check-label">{{ choice }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.skills.help_text %}
+                                <div class="form-text">{{ form.skills.help_text|safe }}</div>
+                            {% endif %}
+                            {% if form.skills.errors %}
+                                <div class="text-danger small mt-1"> {# General error for skills field #}
+                                    {% for error in form.skills.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr class="my-4">
+
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                            <a href="{% url 'profiles:profile_view' %}" class="btn btn-outline-secondary btn-lg">{% translate "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary btn-lg">{% translate "Save Changes" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

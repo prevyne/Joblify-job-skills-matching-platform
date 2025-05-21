@@ -1,0 +1,172 @@
+{% extends "jobs/base.html" %} {# Or your project-wide base_html_bootstrap_001 template #}
+{% load i18n %}
+
+{% block title %}{{ job.title }} at {{ job.company.name }} - Joblify{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8"> {# Main content column #}
+            <article class="job-detail-card bg-white p-4 p-md-5 shadow-sm rounded-3">
+                <header class="mb-4">
+                    <h1 class="display-6 fw-bold">{{ job.title }}</h1>
+                    <div class="mb-3">
+                        <span class="h5 text-muted">{{ job.company.name }}</span>
+                        {% if job.company.website %}
+                            <a href="{{ job.company.website }}" target="_blank" class="ms-2 small text-decoration-none" rel="noopener noreferrer">(Visit Website)</a>
+                        {% endif %}
+                    </div>
+                    <p class="lead fs-6 text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill me-1" viewBox="0 0 16 16">
+                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                        </svg>
+                        {{ job.location }}
+                    </p>
+                </header>
+
+                {# Display messages here if needed after application attempt #}
+                {% if messages %}
+                    <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+
+                <section class="job-meta mb-4">
+                    {# ... (rest of job meta section remains the same) ... #}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <strong class="d-block text-muted small text-uppercase">Job Type</strong>
+                            <span class="badge bg-primary fs-6 fw-normal">{{ job.get_job_type_display }}</span>
+                        </div>
+                        {% if job.experience_level %}
+                        <div class="col-md-4">
+                            <strong class="d-block text-muted small text-uppercase">Experience Level</strong>
+                            <span class="badge bg-success fs-6 fw-normal">{{ job.get_experience_level_display }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-4">
+                            <strong class="d-block text-muted small text-uppercase">Date Posted</strong>
+                            <span class="fs-6">{{ job.date_posted|date:"F d, Y" }}</span>
+                        </div>
+                        {% if job.application_deadline %}
+                        <div class="col-md-4">
+                            <strong class="d-block text-muted small text-uppercase">Apply By</strong>
+                            <span class="fs-6 text-danger fw-medium">{{ job.application_deadline|date:"F d, Y" }}</span>
+                        </div>
+                        {% endif %}
+                        {% if job.salary_min and job.salary_max %}
+                        <div class="col-md-4">
+                            <strong class="d-block text-muted small text-uppercase">Salary Range</strong>
+                            <span class="fs-6">KES {{ job.salary_min|floatformat:0 }} - {{ job.salary_max|floatformat:0 }}</span>
+                        </div>
+                        {% elif job.salary_min %}
+                        <div class="col-md-4">
+                            <strong class="d-block text-muted small text-uppercase">Salary</strong>
+                            <span class="fs-6">From KES {{ job.salary_min|floatformat:0 }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+                <hr class="my-4">
+
+                {% if job.description %}
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Job Description</h2>
+                    <div class="text-break">
+                        {{ job.description|linebreaksbr }}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if job.responsibilities %}
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Responsibilities</h2>
+                    <div class="text-break">
+                        {{ job.responsibilities|linebreaksbr }}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if job.qualifications %}
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Qualifications</h2>
+                    <div class="text-break">
+                        {{ job.qualifications|linebreaksbr }}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if job.skills_required.all %}
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Skills Required</h2>
+                    <div>
+                        {% for skill in job.skills_required.all %}
+                            <span class="badge rounded-pill bg-info text-dark fw-normal fs-6 me-1 mb-1 p-2">{{ skill.name }}</span>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+                
+                <hr class="my-4">
+                <div class="text-center">
+                    {# ADDED/MODIFIED APPLY BUTTON LOGIC #}
+                    {% if user.is_authenticated %}
+                        {% if user_can_apply %} {# This context variable will be set by the job_detail view #}
+                            <form method="post" action="{% url 'profiles:apply_for_job' job_pk=job.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-lg btn-success">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-send-check-fill me-2" viewBox="0 0 16 16">
+                                      <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+                                      <path d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-1.993-1.679a.5.5 0 0 0-.686.172l-1.17 1.95-.547-.547a.5.5 0 0 0-.708.708l.75.75a.5.5 0 0 0 .707 0l1.5-2.5a.5.5 0 0 0-.172-.686Z"/>
+                                    </svg>
+                                    {% translate "Apply Now" %}
+                                </button>
+                            </form>
+                        {% else %}
+                            <p class="alert alert-info">
+                                {% if already_applied %}
+                                    {% translate "You have already applied for this job." %}
+                                {% elif not is_job_seeker %}
+                                    {% translate "Only registered job seekers can apply. Employers may switch to their job seeker profile if applicable." %}
+                                {% else %}
+                                    {% translate "Application not available." %} {# Generic message #}
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-lg btn-success">{% translate "Log In to Apply" %}</a>
+                    {% endif %}
+                </div>
+
+            </article>
+        </div>
+
+        <div class="col-lg-4 mt-4 mt-lg-0"> {# Sidebar column #}
+            {# ... (rest of sidebar company info remains the same) ... #}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">About {{ job.company.name }}</h5>
+                    {% if job.company.logo %}
+                        <img src="{{ job.company.logo.url }}" alt="{{ job.company.name }} logo" class="img-fluid rounded mb-2" style="max-height: 80px;">
+                    {% endif %}
+                    <p class="card-text small text-muted">
+                        {{ job.company.description|striptags|truncatewords:40|default:"No company description available." }}
+                    </p>
+                    {% if job.company.website %}
+                        <a href="{{ job.company.website }}" target="_blank" class="btn btn-outline-primary btn-sm" rel="noopener noreferrer">Visit Company Website</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-secondary">&laquo; Back to All Jobs</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
