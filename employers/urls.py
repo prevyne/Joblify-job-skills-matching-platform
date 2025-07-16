@@ -4,7 +4,7 @@ from . import views
 app_name = 'employers'
 
 urlpatterns = [
-    path('signup/', views.employer_signup, name='employer_signup'),
+    path('signup/', views.employer_signup, name='signup_employer'),
         # I will add other employer-related URLs here later, e.g., dashboard, post job, etc.
     path('dashboard/', views.employer_dashboard, name='employer_dashboard'),
     path('jobs/post/', views.create_job_posting, name='create_job_posting'),

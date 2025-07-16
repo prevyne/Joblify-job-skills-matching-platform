@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from .models import JobPosting 
 from django.db.models import Q
-from profiles.models import UserProfile, JobApplication 
+from profiles.models import UserProfile, JobApplication
+from django.shortcuts import render
 
 #View to list all active job postings
 def job_list(request):
@@ -75,3 +76,9 @@ def job_detail(request, pk):
     }
     
     return render(request, 'jobs/jobposting_detail.html', context)
+
+def home(request):
+    """
+    View for the site's landing page.
+    """
+    return render(request, 'jobs/home.html')

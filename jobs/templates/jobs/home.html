@@ -1,0 +1,31 @@
+{% extends 'jobs/base.html' %}
+
+{% block title %}Welcome to Joblify{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="p-5 mb-4 bg-light rounded-3 text-center">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">Welcome to Joblify</h1>
+            <p class="fs-4">Your platform for connecting tech talent with opportunity in Kenya.</p>
+            <hr class="my-4">
+            <p>Find your next role or discover the perfect candidate today.</p>
+            <a class="btn btn-primary btn-lg mx-2" href="{% url 'jobs:job_list' %}" role="button">Browse Jobs</a>
+            <a class="btn btn-secondary btn-lg mx-2" href="{% url 'employers:signup_employer' %}" role="button">For Employers</a>
+        </div>
+    </div>
+
+    <div class="row text-center">
+        <div class="col-md-6">
+            <h3>Already have an account?</h3>
+            <p>Log in to access your dashboard and manage your applications or job postings.</p>
+            <a href="{% url 'login' %}" class="btn btn-outline-primary">Login</a>
+        </div>
+        <div class="col-md-6">
+            <h3>New to Joblify?</h3>
+            <p>Create an account to get started. It only takes a minute.</p>
+            <a href="{% url 'profiles:signup' %}" class="btn btn-outline-success">Sign Up as a Job Seeker</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
