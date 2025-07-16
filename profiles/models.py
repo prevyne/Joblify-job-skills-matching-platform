@@ -25,12 +25,27 @@ class Skill(models.Model):
         
 #User Profile model
 class UserProfile(models.Model):
+    
+    EXPERIENCE_LEVEL_CHOICES = [
+        ('entry', 'Entry-Level'),
+        ('mid', 'Mid-Level'),
+        ('senior', 'Senior'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile') # Link to Django's User model
     bio = models.TextField(blank=True, null=True) # A short biography or summary
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True) # For user's photo
     skills = models.ManyToManyField(Skill, blank=True) # Many users can have many skills
     phone_number = models.CharField(max_length=20, blank=True, null=True) # Optional phone number
     location = models.CharField(max_length=100, blank=True, null=True) # e.g., "Nairobi", "Nakuru"
+
+    experience_level = models.CharField(
+        max_length=10,
+        choices=EXPERIENCE_LEVEL_CHOICES,
+        null=True,  # Important: Allows existing profiles to have no value
+        blank=True  # Important: Makes the field optional in forms
+    )
+
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

@@ -13,23 +13,28 @@ class SignUpForm(UserCreationForm):
         fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email',)
         
 class UserProfileEditForm(forms.ModelForm):
-    # Use a ModelMultipleChoiceField with a widget for better UX with skills
     skills = forms.ModelMultipleChoiceField(
-        queryset=Skill.objects.all().order_by('name'), # Show all available skills, ordered
-        widget=forms.CheckboxSelectMultiple, # Render as checkboxes, or use SelectMultiple
-        required=False # Make it optional to have skills
+        queryset=Skill.objects.all().order_by('name'),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
     )
 
     class Meta:
         model = UserProfile
-        fields = ['bio', 'profile_picture', 'phone_number', 'location', 'skills']
-        # Exclude 'user' field as it should not be changed via this form; it's set by who is logged in.
+        # --- THIS LIST IS NOW CORRECTED ---
+        fields = [
+            'bio', 
+            'profile_picture', 
+            'phone_number', # Corrected from 'contact_phone'
+            'location',     # Added missing field
+            'experience_level', 
+            'skills'
+        ]
         widgets = {
-            'bio': forms.Textarea(attrs={'rows': 4}), # Make bio a bit larger
+            'bio': forms.Textarea(attrs={'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-        if self.instance and self.instance.profile_picture:
-            self.fields['profile_picture'].required = False # Don't require a new picture if one exists
+        if self.instance and self.instance.pk and self.instance.profile_picture:
+            self.fields['profile_picture'].required = False

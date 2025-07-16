@@ -9,10 +9,12 @@ from django.conf import settings
 from django.core.mail import send_mail
 
 from jobs.models import Company, JobPosting
-from jobs.services import calculate_similarity
+# Import both of our AI service functions
+from jobs.services import calculate_similarity, calculate_experience_score 
 from profiles.models import JobApplication
 from .models import EmployerProfile
 from .forms import EmployerSignUpForm, JobPostingForm, CompanyEditForm
+
 
 def employer_signup(request):
     """Handles the signup process for new employers."""
@@ -24,7 +26,6 @@ def employer_signup(request):
                 employers_group = Group.objects.get(name='Employers')
                 user.groups.add(employers_group)
             except Group.DoesNotExist:
-                # This fallback is a safety net for configuration errors.
                 messages.error(request, "Configuration error: 'Employers' group not found.")
                 print("CRITICAL: 'Employers' group not found during employer signup.")
 
@@ -41,8 +42,6 @@ def employer_signup(request):
             login(request, user)
             messages.success(request, f"Welcome, {user.username}! Your employer account is ready.")
             return redirect('employers:employer_dashboard')
-        else:
-            messages.error(request, "Please correct the errors below.")
     else:
         form = EmployerSignUpForm()
     return render(request, 'employers/signup_employer.html', {'form': form})
@@ -85,7 +84,7 @@ def create_job_posting(request):
             job_posting.company = company
             job_posting.posted_by = request.user
             job_posting.save()
-            form.save_m2m() # Important for saving ManyToMany fields like skills
+            form.save_m2m()
             messages.success(request, f"Job posting '{job_posting.title}' created successfully!")
             return redirect('employers:employer_dashboard')
     else:
@@ -164,21 +163,26 @@ def view_job_applicants(request, job_pk):
 
     application_list = JobApplication.objects.filter(job_posting=job_posting).select_related('user_profile__user')
 
-    # Calculate match score for each applicant based on their profile vs the job description.
-    job_skills = ' '.join([s.name for s in job_posting.skills_required.all()])
-    job_text = f"{job_posting.title} {job_posting.description} {job_skills}"
+    # --- START: Updated AI Score Calculation ---
+    job_skills_text = ' '.join([s.name for s in job_posting.skills_required.all()])
+    job_text = f"{job_posting.title} {job_posting.description} {job_skills_text} {job_skills_text} {job_skills_text}"
 
     for application in application_list:
         profile = application.user_profile
         profile_skills = ' '.join([s.name for s in profile.skills.all()])
-        profile_text = f"{profile.bio} {profile_skills}"
-        score = calculate_similarity(job_text, profile_text)
-        application.match_score = int(score * 100)
+        profile_text = f"{profile.bio} {profile_skills} {profile_skills} {profile_skills}"
 
-    # Sort applicants by match score (highest first).
+        # Calculate the two separate scores
+        text_score = calculate_similarity(job_text, profile_text)
+        exp_score = calculate_experience_score(job_posting.experience_level, profile.experience_level)
+        
+        # Combine them using a weighted average (70% text, 30% experience)
+        final_score = (0.7 * text_score) + (0.3 * exp_score)
+        application.match_score = int(final_score * 100)
+    # --- END: Updated AI Score Calculation ---
+    
     application_list_sorted = sorted(list(application_list), key=lambda app: app.match_score, reverse=True)
 
-    # Allow optional filtering by status on the AI-sorted list.
     filter_status = request.GET.get('status', '')
     if filter_status:
         application_list_sorted = [app for app in application_list_sorted if app.status == filter_status]
@@ -194,6 +198,7 @@ def view_job_applicants(request, job_pk):
         'current_filter_status': filter_status,
     }
     return render(request, 'employers/view_job_applicants.html', context)
+
 
 @login_required
 @require_POST
@@ -212,7 +217,6 @@ def update_application_status(request, application_pk):
         application.save()
         new_status_display = application.get_status_display()
 
-        # Notify the applicant via email about the status change.
         applicant_user = application.user_profile.user
         email_subject = f"Update on your application for {application.job_posting.title}"
         email_body = f"Hi {applicant_user.first_name},\n\nThe status of your application for '{application.job_posting.title}' has been updated from '{old_status_display}' to '{new_status_display}'.\n\nBest regards,\nThe Joblify Team"
