@@ -1,195 +1,148 @@
-    {% extends "jobs/base.html" %} {# Or your project-wide base_html_bootstrap_001 template #}
-    {% load i18n %}
+{% extends "jobs/base.html" %}
+{% load i18n %}
 
-    {% block title %}{% translate "Applicants for" %} {{ job_posting.title }} - Joblify{% endblock %}
+{% block title %}{% translate "Applicants for" %} {{ job_posting.title }}{% endblock %}
 
-    {% block content %}
-    <div class="container py-4">
-        <header class="mb-4 pb-3 border-bottom">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div>
-                    <h1 class="h2 mb-0">{% translate "Applicants for:" %} <span class="text-primary">{{ job_posting.title }}</span></h1>
-                    <p class="lead text-muted mb-0">{% translate "Review candidates who have applied for this role at" %} {{ job_posting.company.name }}.</p>
-                </div>
-                <a href="{% url 'employers:manage_jobs_list' %}" class="btn btn-outline-secondary">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-short" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
-                    </svg>
-                    {% translate "Back to Manage Jobs" %}
-                </a>
+{% block content %}
+<div class="container py-4">
+    <header class="mb-4 pb-3 border-bottom">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h1 class="h2 mb-0">{% translate "Applicants for:" %} <span class="text-primary">{{ job_posting.title }}</span></h1>
+                <p class="lead text-muted mb-0">{% translate "Top candidates are listed first based on their match score." %}</p>
             </div>
-        </header>
-
-        {# Display messages if any #}
-        {% if messages %}
-            <div class="mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-            </div>
-        {% endif %}
-
-        {# Sorting and Filtering Form #}
-        <form method="get" action="" class="mb-4 p-3 bg-light border rounded-3">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label for="filter_status" class="form-label small">{% translate "Filter by Status:" %}</label>
-                    <select name="status" id="filter_status" class="form-select form-select-sm">
-                        <option value="">{% translate "All Statuses" %}</option>
-                        {% for status_value, status_display in available_statuses %} {# Pass available_statuses from view #}
-                            <option value="{{ status_value }}" {% if request.GET.status == status_value %}selected{% endif %}>
-                                {{ status_display }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="sort_by" class="form-label small">{% translate "Sort by:" %}</label>
-                    <select name="sort" id="sort_by" class="form-select form-select-sm">
-                        <option value="-application_date" {% if request.GET.sort == '-application_date' or not request.GET.sort %}selected{% endif %}>{% translate "Application Date (Newest First)" %}</option>
-                        <option value="application_date" {% if request.GET.sort == 'application_date' %}selected{% endif %}>{% translate "Application Date (Oldest First)" %}</option>
-                        <option value="user_profile__user__username" {% if request.GET.sort == 'user_profile__user__username' %}selected{% endif %}>{% translate "Applicant Name (A-Z)" %}</option>
-                        <option value="-user_profile__user__username" {% if request.GET.sort == '-user_profile__user__username' %}selected{% endif %}>{% translate "Applicant Name (Z-A)" %}</option>
-                    </select>
-                </div>
-                <div class="col-md-auto">
-                    <button type="submit" class="btn btn-primary btn-sm w-100">{% translate "Apply Filters" %}</button>
-                </div>
-            </div>
-        </form>
-
-        {% if applicants %}
-            <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{% translate "Applicants" %} ({{ applicants.paginator.count }})</h5>
-                    {% if request.GET.status or request.GET.sort %}
-                        <a href="{% url 'employers:view_job_applicants' job_pk=job_posting.pk %}" class="btn btn-sm btn-outline-secondary">{% translate "Clear Filters" %}</a>
-                    {% endif %}
-                </div>
-                <div class="list-group list-group-flush">
-                    {% for application in applicants %}
-                    <div class="list-group-item py-3 px-3">
-                        <div class="row align-items-center gy-2"> {# gy-2 for vertical gap on small screens #}
-                            {# Applicant Info Column #}
-                            <div class="col-lg-4 col-md-12 mb-2 mb-lg-0">
-                                <h5 class="mb-1 h6">
-                                    <a href="{% url 'profiles:applicant_profile_detail' username=application.user_profile.user.username %}" class="text-decoration-none" title="View Full Profile">
-                                        {{ application.user_profile.user.get_full_name|default:application.user_profile.user.username }}
-                                    </a>
-                                </h5>
-                                <small class="text-muted d-block">
-                                    {% translate "Applied on" %}: {{ application.application_date|date:"d M, Y P" }}
-                                </small>
-                                <small class="text-muted d-block">
-                                    {% translate "Current Status" %}: 
-                                    <span class="badge 
-                                        {% if application.status == 'shortlisted' %}bg-success
-                                        {% elif application.status == 'rejected_by_employer' %}bg-danger
-                                        {% elif application.status == 'interviewing' %}bg-primary
-                                        {% elif application.status == 'offered' %}bg-warning text-dark
-                                        {% elif application.status == 'hired' %}bg-purple text-white {# Custom class needed for bg-purple #}
-                                        {% elif application.status == 'viewed' %}bg-info text-dark
-                                        {% else %}bg-secondary
-                                        {% endif %}">
-                                        {{ application.get_status_display }}
-                                    </span>
-                                </small>
-                            </div>
-
-                            {# Skills Column #}
-                            <div class="col-lg-4 col-md-6 mb-2 mb-lg-0">
-                                {% if application.user_profile.skills.all %}
-                                    <strong class="small d-block mb-1">{% translate "Key Skills" %}:</strong>
-                                    <div>
-                                    {% for skill in application.user_profile.skills.all|slice:":4" %}
-                                        <span class="badge bg-light text-dark border me-1 mb-1">{{ skill.name }}</span>
-                                    {% endfor %}
-                                    {% if application.user_profile.skills.all|length > 4 %}
-                                        <span class="badge bg-light text-dark border mb-1">...</span>
-                                    {% endif %}
-                                    </div>
-                                {% else %}
-                                    <small class="text-muted">{% translate "No skills listed." %}</small>
-                                {% endif %}
-                            </div>
-
-                            {# Status Update Form & Actions Column #}
-                            <div class="col-lg-4 col-md-6 text-md-end">
-                                <form method="post" action="{% url 'employers:update_application_status' application_pk=application.pk %}" class="d-inline-block align-middle w-100">
-                                    {% csrf_token %}
-                                    <div class="input-group input-group-sm">
-                                        <label for="status-select-{{application.pk}}" class="visually-hidden">{% translate "Change status for" %} {{ application.user_profile.user.username }}</label>
-                                        <select name="new_status" id="status-select-{{application.pk}}" class="form-select form-select-sm" aria-label="Change application status">
-                                            <option value="">-- {% translate "Change Status" %} --</option>
-                                            {% for status_value, status_display in application.STATUS_CHOICES %}
-                                                {% if application.status != status_value %} 
-                                                    <option value="{{ status_value }}">
-                                                        {{ status_display }}
-                                                    </option>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </select>
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">{% translate "Update" %}</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                {% if is_paginated %}
-                <div class="card-footer bg-light border-top-0">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center mb-0">
-                            {# Pagination controls remain the same #}
-                            {% if applicants.has_previous %}
-                                <li class="page-item"><a class="page-link" href="?page=1&status={{ request.GET.status|default:'' }}&sort={{ request.GET.sort|default:'-application_date' }}">&laquo; {% translate "first" %}</a></li>
-                                <li class="page-item"><a class="page-link" href="?page={{ applicants.previous_page_number }}&status={{ request.GET.status|default:'' }}&sort={{ request.GET.sort|default:'-application_date' }}">{% translate "previous" %}</a></li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link">&laquo; {% translate "first" %}</span></li>
-                                <li class="page-item disabled"><span class="page-link">{% translate "previous" %}</span></li>
-                            {% endif %}
-
-                            <li class="page-item disabled"><span class="page-link">{% translate "Page" %} {{ applicants.number }} {% translate "of" %} {{ applicants.paginator.num_pages }}.</span></li>
-
-                            {% if applicants.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page={{ applicants.next_page_number }}&status={{ request.GET.status|default:'' }}&sort={{ request.GET.sort|default:'-application_date' }}">{% translate "next" %}</a></li>
-                                <li class="page-item"><a class="page-link" href="?page={{ applicants.paginator.num_pages }}&status={{ request.GET.status|default:'' }}&sort={{ request.GET.sort|default:'-application_date' }}">{% translate "last" %} &raquo;</a></li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link">{% translate "next" %}</span></li>
-                                <li class="page-item disabled"><span class="page-link">{% translate "last" %} &raquo;</span></li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
-                {% endif %}
-            </div>
-        {% else %}
-            <div class="alert alert-info mt-4 text-center" role="alert">
-                <h4 class="alert-heading">{% translate "No Applicants Found" %}</h4>
-                {% if request.GET.status or request.GET.sort %}
-                    <p>{% translate "No applicants match your current filter or sort criteria." %}</p>
-                {% else %}
-                    <p>{% translate "There are currently no applications for" %} "{{ job_posting.title }}".</p>
-                {% endif %}
-            </div>
-        {% endif %}
-
-        <div class="mt-4">
             <a href="{% url 'employers:manage_jobs_list' %}" class="btn btn-outline-secondary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-circle-fill me-1" viewBox="0 0 16 16">
-                  <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
-                </svg>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-short" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>
                 {% translate "Back to Manage Jobs" %}
             </a>
         </div>
-    </div>
-    {# Custom CSS for bg-purple if needed, or use existing Bootstrap colors #}
-    <style>
-        .bg-purple { background-color: #6f42c1; } /* Example purple */
-    </style>
-    {% endblock %}
+    </header>
+
+    {# Filtering Form - Simplified #}
+    <form method="get" action="" class="mb-4 p-3 bg-light border rounded-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label for="filter_status" class="form-label small">{% translate "Filter by Status:" %}</label>
+                <select name="status" id="filter_status" class="form-select form-select-sm">
+                    <option value="">{% translate "All Statuses" %}</option>
+                    {% for status_value, status_display in available_statuses %}
+                        <option value="{{ status_value }}" {% if current_filter_status == status_value %}selected{% endif %}>
+                            {{ status_display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary btn-sm w-100">{% translate "Apply Filter" %}</button>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'employers:view_job_applicants' job_pk=job_posting.pk %}" class="btn btn-outline-secondary btn-sm w-100">{% translate "Clear" %}</a>
+            </div>
+        </div>
+    </form>
+
+    {% if applicants %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">{% translate "Applicants" %} ({{ applicants.paginator.count }})</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for application in applicants %}
+                <div class="list-group-item py-3 px-3">
+                    <div class="row align-items-center gy-3">
+                        
+                        {# Applicant Info & Match Score Column #}
+                        <div class="col-lg-5 col-md-12">
+                            <h5 class="mb-1 h6">
+                                <a href="{% url 'profiles:applicant_profile_display' pk=application.user_profile.pk %}" class="text-decoration-none" title="View Full Profile">
+                                    {{ application.user_profile.user.get_full_name|default:application.user_profile.user.username }}
+                                </a>
+                            </h5>
+                            <div class="mb-2">
+                                <small class="text-muted d-block">{% translate "Match Score" %}: <strong>{{ application.match_score }}%</strong></small>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ application.match_score }}%;" aria-valuenow="{{ application.match_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block">
+                                {% translate "Applied" %}: {{ application.application_date|date:"d M, Y" }}
+                            </small>
+                            <small class="text-muted d-block">
+                                {% translate "Status" %}: <span class="badge bg-secondary font-monospace">{{ application.get_status_display }}</span>
+                            </small>
+                        </div>
+
+                        {# Skills Column #}
+                        <div class="col-lg-3 col-md-6">
+                            {% if application.user_profile.skills.all %}
+                                <div>
+                                {% for skill in application.user_profile.skills.all|slice:":5" %}
+                                    <span class="badge bg-light text-dark border me-1 mb-1">{{ skill.name }}</span>
+                                {% endfor %}
+                                </div>
+                            {% else %}
+                                <small class="text-muted">{% translate "No skills listed" %}</small>
+                            {% endif %}
+                        </div>
+
+                        {# Status Update Form Column #}
+                        <div class="col-lg-4 col-md-6 text-md-end">
+                            <form method="post" action="{% url 'employers:update_application_status' application_pk=application.pk %}" class="d-inline-block align-middle w-100">
+                                {% csrf_token %}
+                                <div class="input-group input-group-sm">
+                                    <label for="status-select-{{application.pk}}" class="visually-hidden">{% translate "Change status" %}</label>
+                                    <select name="new_status" id="status-select-{{application.pk}}" class="form-select">
+                                        <option>-- {% translate "Change Status" %} --</option>
+                                        {% for val, display in available_statuses %}
+                                            {% if application.status != val %} 
+                                                <option value="{{ val }}">{{ display }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-outline-primary">{% translate "Update" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if applicants.has_other_pages %}
+            <div class="card-footer bg-light border-top-0">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if applicants.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page=1&status={{ current_filter_status|default:'' }}">&laquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ applicants.previous_page_number }}&status={{ current_filter_status|default:'' }}">{% translate "Prev" %}</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                            <li class="page-item disabled"><span class="page-link">{% translate "Prev" %}</span></li>
+                        {% endif %}
+
+                        <li class="page-item active" aria-current="page"><span class="page-link">{{ applicants.number }}</span></li>
+
+                        {% if applicants.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ applicants.next_page_number }}&status={{ current_filter_status|default:'' }}">{% translate "Next" %}</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ applicants.paginator.num_pages }}&status={{ current_filter_status|default:'' }}">&raquo;</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">{% translate "Next" %}</span></li>
+                            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-4 text-center" role="alert">
+            <h4 class="alert-heading">{% translate "No Applicants Found" %}</h4>
+            {% if current_filter_status %}
+                <p>{% translate "No applicants match your current filter criteria." %}</p>
+            {% else %}
+                <p>{% translate "There are currently no applications for" %} "{{ job_posting.title }}".</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

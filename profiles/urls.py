@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views # I'll create the signup view next
+from . import views
 
 app_name = 'profiles'
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path('my-applications/', views.my_applications, name='my_applications'),
     path('applicant/<str:username>/', views.applicant_profile_detail, name='applicant_profile_detail'),
     path('application/<int:application_pk>/withdraw/', views.withdraw_application, name='withdraw_application'),
+    path('applicant/<int:pk>/', views.applicant_profile_detail, name='applicant_profile_display'),
 ]
