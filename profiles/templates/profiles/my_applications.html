@@ -1,4 +1,4 @@
-{% extends "jobs/base.html" %} {# Or your project-wide base_html_bootstrap_001 template #}
+{% extends "jobs/base.html" %}
 {% load i18n %}
 
 {% block title %}{% translate "My Job Applications" %} - Joblify{% endblock %}
@@ -10,7 +10,6 @@
         <p class="lead text-muted">{% translate "Track the status of jobs you've applied for." %}</p>
     </header>
 
-    {# Display messages if any (e.g., after withdrawing an application) #}
     {% if messages %}
         <div class="mt-3">
         {% for message in messages %}
@@ -45,18 +44,17 @@
                                     {% elif application.status == 'rejected_by_employer' %}bg-danger
                                     {% elif application.status == 'interviewing' %}bg-primary
                                     {% elif application.status == 'offered' %}bg-warning text-dark
-                                    {% elif application.status == 'hired' %}bg-purple text-white {# Custom class needed for bg-purple #}
+                                    {% elif application.status == 'hired' %}bg-purple text-white
                                     {% elif application.status == 'viewed' %}bg-info text-dark
                                     {% elif application.status == 'withdrawn_by_applicant' %}bg-secondary
-                                    {% else %}bg-secondary {# Default for 'submitted' or other statuses #}
+                                    {% else %}bg-secondary
                                     {% endif %}">
                                     {{ application.get_status_display }}
                                 </span>
                             </small>
                         </div>
                         <div class="col-md-5 col-lg-4 text-md-end">
-                            {# Withdraw Application Button/Form #}
-                            {% if application.status != 'withdrawn_by_applicant' and application.status != 'hired' and application.status != 'rejected_by_employer' %} {# Don't show withdraw if already withdrawn, hired, or rejected #}
+                            {% if application.status != 'withdrawn_by_applicant' and application.status != 'hired' and application.status != 'rejected_by_employer' %}
                                 <form method="post" action="{% url 'profiles:withdraw_application' application_pk=application.pk %}" class="d-inline-block" onsubmit="return confirm('Are you sure you want to withdraw this application?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -73,7 +71,7 @@
                 </div>
                 {% endfor %}
             </div>
-            {% if is_paginated %}
+            {% if applications.has_other_pages %}
             <div class="card-footer bg-light border-top-0">
                 <nav aria-label="Page navigation">
                     <ul class="pagination justify-content-center mb-0">
@@ -109,7 +107,8 @@
     {% endif %}
 
     <div class="mt-4">
-        <a href="{% url 'profiles:profile_view' %}" class="btn btn-outline-secondary">
+        
+        <a href="{% url 'profiles:profile_detail' %}" class="btn btn-outline-secondary">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-circle-fill me-1" viewBox="0 0 16 16">
               <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
             </svg>
@@ -117,8 +116,7 @@
         </a>
     </div>
 </div>
-{# Custom CSS for bg-purple if needed, or use existing Bootstrap colors #}
 <style>
-    .bg-purple { background-color: #6f42c1; } /* Example purple */
+    .bg-purple { background-color: #6f42c1; }
 </style>
 {% endblock %}

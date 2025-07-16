@@ -21,17 +21,20 @@ class UserProfileEditForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        # --- THIS LIST IS NOW CORRECTED ---
         fields = [
             'bio', 
             'profile_picture', 
-            'phone_number', # Corrected from 'contact_phone'
-            'location',     # Added missing field
+            'phone_number',
+            'location',
             'experience_level', 
             'skills'
         ]
+        # --- THIS WIDGETS SECTION IS UPDATED ---
         widgets = {
             'bio': forms.Textarea(attrs={'rows': 4}),
+            # This tells Django to render the experience_level field
+            # with the 'form-select' class for proper Bootstrap styling.
+            'experience_level': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):

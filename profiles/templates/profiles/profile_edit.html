@@ -21,70 +21,58 @@
                         {% endfor %}
                     {% endif %}
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger" role="alert">
-                            {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <form method="post" enctype="multipart/form-data" novalidate>
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         {# Bio #}
                         <div class="mb-3">
                             <label for="{{ form.bio.id_for_label }}" class="form-label">{{ form.bio.label }}</label>
-                            <textarea name="{{ form.bio.name }}" id="{{ form.bio.id_for_label }}" class="form-control {% if form.bio.errors %}is-invalid{% endif %}" rows="4">{{ form.bio.value|default_if_none:"" }}</textarea>
-                            {% if form.bio.errors %}<div class="invalid-feedback">{% for error in form.bio.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            {{ form.bio }}
+                            {% if form.bio.errors %}<div class="invalid-feedback d-block">{% for error in form.bio.errors %}{{ error }}{% endfor %}</div>{% endif %}
                         </div>
 
                         {# Profile Picture #}
                         <div class="mb-3">
                             <label for="{{ form.profile_picture.id_for_label }}" class="form-label">{{ form.profile_picture.label }}</label>
-                            {% if user.profile.profile_picture %}
+                            {% if user.profile.profile_picture and user.profile.profile_picture.name != 'profile_pics/default.jpg' %}
                                 <div class="mb-2"><img src="{{ user.profile.profile_picture.url }}" alt="Current profile picture" style="max-height: 100px; border-radius: .25rem;" class="img-thumbnail"></div>
                             {% endif %}
-                            <input type="file" name="{{ form.profile_picture.name }}" id="{{ form.profile_picture.id_for_label }}" class="form-control {% if form.profile_picture.errors %}is-invalid{% endif %}">
-                            {% if form.profile_picture.errors %}<div class="invalid-feedback">{% for error in form.profile_picture.errors %}{{ error }}{% endfor %}</div>{% endif %}
-                            {% if user.profile.profile_picture and user.profile.profile_picture.name != 'profile_pics/default.jpg' %}
-                                <div class="form-check mt-1">
-                                     <input type="checkbox" name="profile_picture-clear" id="profile_picture-clear_id" class="form-check-input">
-                                     <label class="form-check-label" for="profile_picture-clear_id">{% translate "Clear current picture" %}</label>
-                                </div>
-                            {% endif %}
+                            {{ form.profile_picture }}
+                            {% if form.profile_picture.errors %}<div class="invalid-feedback d-block">{% for error in form.profile_picture.errors %}{{ error }}{% endfor %}</div>{% endif %}
                         </div>
 
-                        {# Contact Phone - Assuming field name is contact_phone #}
+                        {# Phone Number #}
                         <div class="mb-3">
-                            <label for="{{ form.contact_phone.id_for_label }}" class="form-label">{{ form.contact_phone.label }}</label>
-                            <input type="text" name="{{ form.contact_phone.name }}" id="{{ form.contact_phone.id_for_label }}" class="form-control {% if form.contact_phone.errors %}is-invalid{% endif %}" value="{{ form.contact_phone.value|default_if_none:"" }}">
-                            {% if form.contact_phone.errors %}<div class="invalid-feedback">{% for error in form.contact_phone.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}<div class="invalid-feedback d-block">{% for error in form.phone_number.errors %}{{ error }}{% endfor %}</div>{% endif %}
                         </div>
-                        
-                        {# --- START: NEW EXPERIENCE LEVEL FIELD --- #}
+
+                        {# Location #}
+                         <div class="mb-3">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                             {{ form.location }}
+                            {% if form.location.errors %}<div class="invalid-feedback d-block">{% for error in form.location.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                        </div>
+
+                        {# --- START: CORRECTED EXPERIENCE LEVEL FIELD --- #}
                         <div class="mb-3">
                             <label for="{{ form.experience_level.id_for_label }}" class="form-label">{{ form.experience_level.label }}</label>
-                            {# Django renders a CharField with choices as a <select> dropdown #}
-                            <select name="{{ form.experience_level.name }}" id="{{ form.experience_level.id_for_label }}" class="form-select {% if form.experience_level.errors %}is-invalid{% endif %}">
-                                {{ form.experience_level }}
-                            </select>
+                            {# This now renders the complete <select> with the correct class from the widget #}
+                            {{ form.experience_level }}
                             {% if form.experience_level.errors %}
-                                <div class="invalid-feedback">
+                                <div class="invalid-feedback d-block">
                                     {% for error in form.experience_level.errors %}{{ error }}{% endfor %}
                                 </div>
                             {% endif %}
                         </div>
-                        {# --- END: NEW EXPERIENCE LEVEL FIELD --- #}
+                        {# --- END: CORRECTED EXPERIENCE LEVEL FIELD --- #}
 
                         {# Skills #}
                         <div class="mb-4">
                             <label class="form-label">{{ form.skills.label }}</label>
                             <div class="p-3 border rounded" style="max-height: 200px; overflow-y: auto;">
-                                {% for pk, choice in form.fields.skills.choices %}
-                                <div class="form-check">
-                                    <input type="checkbox" name="{{ form.skills.name }}" value="{{ pk }}" id="id_skills_{{ forloop.counter0 }}" class="form-check-input" {% if pk|stringformat:"s" in form.skills.value|stringformat:"s"|default_if_none:"" or pk in form.skills.value|default_if_none:"" %}checked{% endif %}>
-                                    <label for="id_skills_{{ forloop.counter0 }}" class="form-check-label">{{ choice }}</label>
-                                </div>
-                                {% endfor %}
+                                {{ form.skills }}
                             </div>
                             {% if form.skills.errors %}<div class="text-danger small mt-1">{% for error in form.skills.errors %}{{ error }}{% endfor %}</div>{% endif %}
                         </div>
@@ -92,8 +80,8 @@
                         <hr class="my-4">
 
                         <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
-                            <a href="{% url 'profiles:profile_detail' %}" class="btn btn-outline-secondary btn-lg">{% translate "Cancel" %}</a>
-                            <button type="submit" class="btn btn-primary btn-lg">{% translate "Save Changes" %}</button>
+                            <a href="{% url 'profiles:profile_detail' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                            <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
                         </div>
                     </form>
                 </div>
